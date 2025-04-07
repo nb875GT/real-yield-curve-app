@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # Set up Streamlit layout
 st.set_page_config(page_title="Real Yield Curve", layout="wide")
 st.title("Real Yields on US Treasury Securities")
-st.caption("Manually input real yields for 01/01/2025, 03/14/2025, and 03/21/2025")
+st.caption("Manually input real yields for 01/01/2025, 03/28/2025, and 04/04/2025")
 
 # Define maturities
 maturities = ["5 Yr", "7 Yr", "10 Yr", "20 Yr", "30 Yr"]
@@ -23,33 +23,33 @@ yields_0101 = {
     "30 Yr": 2.48
 }
 
-yields_0314 = {
-    "5 Yr": 1.61,
-    "7 Yr": 1.83,
-    "10 Yr": 2.01,
-    "20 Yr": 2.27,
-    "30 Yr": 2.38
+yields_0328 = {
+    "5 Yr": 1.40,
+    "7 Yr": 1.68,
+    "10 Yr": 1.90,
+    "20 Yr": 2.22,
+    "30 Yr": 2.37
 }
 
-yields_0321 = {
-    "5 Yr": 1.49,
-    "7 Yr": 1.73,
-    "10 Yr": 1.92,
-    "20 Yr": 2.21,
-    "30 Yr": 2.35
+yields_0404 = {
+    "5 Yr": 1.38,
+    "7 Yr": 1.63,
+    "10 Yr": 1.83,
+    "20 Yr": 2.14,
+    "30 Yr": 2.28
 }
 
 # Build dataframe
 real_yields_df = pd.DataFrame({
     "Maturity": maturities,
     "01/01/2025": [yields_0101[m] for m in maturities],
-    "03/14/2025": [yields_0314[m] for m in maturities],
-    "03/21/2025": [yields_0321[m] for m in maturities],
+    "03/28/2025": [yields_0314[m] for m in maturities],
+    "04/04/2025": [yields_0321[m] for m in maturities],
 })
 
 # Week-over-week nominal change (not %)
 real_yields_df["Weekly Change"] = (
-    real_yields_df["03/21/2025"] - real_yields_df["03/14/2025"]
+    real_yields_df["03/28/2025"] - real_yields_df["04/04/2025"]
 ).round(2)
 
 # ------------------------------
@@ -61,8 +61,8 @@ ax.set_facecolor('black')
 
 # Plot each curve
 ax.plot(real_yields_df["Maturity"], real_yields_df["01/01/2025"], marker='o', color='skyblue', label="Real Yield (01/01/2025)")
-ax.plot(real_yields_df["Maturity"], real_yields_df["03/14/2025"], marker='s', color='orange', label="Real Yield (03/14/2025)")
-ax.plot(real_yields_df["Maturity"], real_yields_df["03/21/2025"], marker='^', color='lime', label="Real Yield (03/21/2025)")
+ax.plot(real_yields_df["Maturity"], real_yields_df["03/28/2025"], marker='s', color='orange', label="Real Yield (03/28/2025)")
+ax.plot(real_yields_df["Maturity"], real_yields_df["04/04/2025"], marker='^', color='lime', label="Real Yield (04/04/2025)")
 
 # Annotate nominal week-over-week change
 for i, row in real_yields_df.iterrows():
