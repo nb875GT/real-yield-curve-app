@@ -66,7 +66,7 @@ ax.plot(real_yields_df["Maturity"], real_yields_df["04/04/2025"], marker='^', co
 
 # Annotate nominal week-over-week change
 for i, row in real_yields_df.iterrows():
-    ax.text(row["Maturity"], row["03/21/2025"] + 0.05,
+    ax.text(row["Maturity"], row["03/28/2025"] + 0.05,
             f"{row['Weekly Change']:+.2f}", ha='center', fontsize=9, color='white')
 
 # Style
