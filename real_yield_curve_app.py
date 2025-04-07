@@ -43,8 +43,8 @@ yields_0404 = {
 real_yields_df = pd.DataFrame({
     "Maturity": maturities,
     "01/01/2025": [yields_0101[m] for m in maturities],
-    "03/28/2025": [yields_0314[m] for m in maturities],
-    "04/04/2025": [yields_0321[m] for m in maturities],
+    "03/28/2025": [yields_0328[m] for m in maturities],
+    "04/04/2025": [yields_0404[m] for m in maturities],
 })
 
 # Week-over-week nominal change (not %)
