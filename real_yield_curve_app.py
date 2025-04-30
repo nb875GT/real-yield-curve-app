@@ -23,33 +23,33 @@ yields_0101 = {
     "30 Yr": 2.48
 }
 
-yields_0328 = {
-    "5 Yr": 1.40,
-    "7 Yr": 1.68,
-    "10 Yr": 1.90,
-    "20 Yr": 2.22,
-    "30 Yr": 2.37
+yields_0418 = {
+    "5 Yr": 1.69,
+    "7 Yr": 1.90,
+    "10 Yr": 2.11,
+    "20 Yr": 2.43,
+    "30 Yr": 2.59
 }
 
-yields_0404 = {
-    "5 Yr": 1.38,
-    "7 Yr": 1.63,
-    "10 Yr": 1.83,
-    "20 Yr": 2.14,
-    "30 Yr": 2.28
+yields_0425 = {
+    "5 Yr": 1.56,
+    "7 Yr": 1.80,
+    "10 Yr": 2.02,
+    "20 Yr": 2.36,
+    "30 Yr": 2.53
 }
 
 # Build dataframe
 real_yields_df = pd.DataFrame({
     "Maturity": maturities,
     "01/01/2025": [yields_0101[m] for m in maturities],
-    "03/28/2025": [yields_0328[m] for m in maturities],
-    "04/04/2025": [yields_0404[m] for m in maturities],
+    "04/18/2025": [yields_0418[m] for m in maturities],
+    "04/25/2025": [yields_0425[m] for m in maturities],
 })
 
 # Week-over-week nominal change (not %)
 real_yields_df["Weekly Change"] = (
-    real_yields_df["03/28/2025"] - real_yields_df["04/04/2025"]
+    real_yields_df["04/18/2025"] - real_yields_df["04/25/2025"]
 ).round(2)
 
 # ------------------------------
@@ -61,12 +61,12 @@ ax.set_facecolor('black')
 
 # Plot each curve
 ax.plot(real_yields_df["Maturity"], real_yields_df["01/01/2025"], marker='o', color='skyblue', label="Real Yield (01/01/2025)")
-ax.plot(real_yields_df["Maturity"], real_yields_df["03/28/2025"], marker='s', color='orange', label="Real Yield (03/28/2025)")
-ax.plot(real_yields_df["Maturity"], real_yields_df["04/04/2025"], marker='^', color='lime', label="Real Yield (04/04/2025)")
+ax.plot(real_yields_df["Maturity"], real_yields_df["04/18/2025"], marker='s', color='orange', label="Real Yield (04/18/2025)")
+ax.plot(real_yields_df["Maturity"], real_yields_df["04/25/2025"], marker='^', color='lime', label="Real Yield (04/25/2025)")
 
 # Annotate nominal week-over-week change
 for i, row in real_yields_df.iterrows():
-    ax.text(row["Maturity"], row["03/28/2025"] + 0.05,
+    ax.text(row["Maturity"], row["04/18/2025"] + 0.05,
             f"{row['Weekly Change']:+.2f}", ha='center', fontsize=9, color='white')
 
 # Style
