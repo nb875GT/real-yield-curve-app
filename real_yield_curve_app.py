@@ -29,23 +29,13 @@ def get_nearest_yield(series_id, target_date, max_days=10):
                 continue
     return None
 
-# Set up the dates
+# Date setup
 today = datetime.today()
 this_monday = today - timedelta(days=today.weekday())
 last_monday = this_monday - timedelta(weeks=1)
 
-# 🔁 Fix: Look back a few extra days from Jan 1 if needed
-ytd_start_raw = datetime(today.year, 1, 1)
-ytd_start = ytd_start_raw
-for i in range(10):  # look up to 10 days earlier
-    test_date = ytd_start_raw - timedelta(days=i)
-    try:
-        val = fred.get_series("DFII10", test_date, test_date)
-        if not val.empty:
-            ytd_start = test_date
-            break
-    except:
-        continue
+# 🔁 Force YTD to 12/31/2024 since 01/01/2025 is a holiday
+ytd_start = datetime(2024, 12, 31)
 
 # Format date labels
 label_today = this_monday.strftime('%m/%d/%Y')
