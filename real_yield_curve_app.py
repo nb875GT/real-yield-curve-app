@@ -4,85 +4,80 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from fredapi import Fred
 
-# -- Config
-st.set_page_config(page_title="Real Yield Curve", layout="wide")
+# Load FRED API key from Streamlit secrets
+fred = Fred(api_key=st.secrets["fred_api_key"])
+
+# Define FRED series IDs for real yields
+series_ids = {
+    "5yr": "DFII5",
+    "7yr": "DFII7",
+    "10yr": "DFII10",
+    "20yr": "DFII20",
+    "30yr": "DFII30"
+}
+
+def get_nearest_yield(series_id, target_date, max_days=10):
+    """Return the closest yield value to a target date, searching ±max_days."""
+    for offset in range(max_days + 1):
+        for direction in [-1, 1]:
+            check_date = target_date + timedelta(days=offset * direction)
+            try:
+                val = fred.get_series(series_id, check_date, check_date)
+                if not val.empty:
+                    return float(val.values[0])
+            except Exception:
+                continue
+    return None
+
+# Set up the dates
+today = datetime.today()
+this_monday = today - timedelta(days=today.weekday())
+last_monday = this_monday - timedelta(weeks=1)
+ytd_start = datetime(today.year, 1, 1)
+
+# Format date labels
+label_today = this_monday.strftime('%m/%d/%Y')
+label_last = last_monday.strftime('%m/%d/%Y')
+label_ytd = ytd_start.strftime('%m/%d/%Y')
+
+# Retrieve and structure the data
+maturities = []
+yields_ytd = []
+yields_last = []
+yields_today = []
+
+for maturity, series_id in series_ids.items():
+    maturities.append(maturity)
+    yields_ytd.append(get_nearest_yield(series_id, ytd_start))
+    yields_last.append(get_nearest_yield(series_id, last_monday))
+    yields_today.append(get_nearest_yield(series_id, this_monday))
+
+# Build dataframe
+real_yields_df = pd.DataFrame({
+    'Maturity': maturities,
+    label_ytd: yields_ytd,
+    label_last: yields_last,
+    label_today: yields_today
+})
+real_yields_df["Weekly Change"] = (
+    real_yields_df[label_today] - real_yields_df[label_last]
+).round(2)
+
+# Streamlit display
 st.title("Real Yields on US Treasury Securities")
 st.caption("YTD and Week-over-Week Real Yield Movement | Data: FRED")
 
-# -- API Key
-fred = Fred(api_key=st.secrets["fred_api_key"])  # or replace with your key in development
-
-# -- Define FRED series IDs for TIPS yields
-series_ids = {
-    "5 Yr": "DFII5",
-    "7 Yr": "DFII7",
-    "10 Yr": "DFII10",
-    "20 Yr": "DFII20",
-    "30 Yr": "DFII30"
-}
-
-# -- Target dates
-today = datetime.today()
-label_ytd = "01/01/2025"
-label_ww1 = (today - timedelta(days=7)).strftime("%m/%d/%Y")
-label_ww2 = (today - timedelta(days=14)).strftime("%m/%d/%Y")
-
-# -- Fetch nearest real yield data for each date
-def get_nearest_yield(series_id, ref_date):
-    data = fred.get_series(series_id)
-    df = pd.DataFrame(data).dropna()
-    df.index = pd.to_datetime(df.index)
-    nearest_date = df.index[df.index.get_indexer([ref_date], method='nearest')[0]]
-    return df.loc[nearest_date]
-
-# -- Build dataframe
-data = { "Maturity": [] }
-labels = { "YTD": label_ytd, "W/W -1": label_ww1, "W/W -2": label_ww2 }
-
-for label, date_str in labels.items():
-    data[label] = []
-
-# Populate yield data
-for maturity, series_id in series_ids.items():
-    data["Maturity"].append(maturity)
-    for label, date_str in labels.items():
-        date_obj = datetime.strptime(date_str, "%m/%d/%Y")
-        yield_val = get_nearest_yield(series_id, date_obj)
-        data[label].append(round(float(yield_val), 2))
-
-# Create DataFrame
-real_yields_df = pd.DataFrame(data)
-
-# Calculate week-over-week change
-real_yields_df["W/W Change"] = (real_yields_df["W/W -1"] - real_yields_df["W/W -2"]).round(2)
-
-# -- Plotting
-fig, ax = plt.subplots(figsize=(12, 6))
-fig.patch.set_facecolor('black')
-ax.set_facecolor('black')
-
-# Plot lines
-ax.plot(real_yields_df["Maturity"], real_yields_df["YTD"], marker='o', color='deepskyblue', label=f"Real Yield ({label_ytd})")
-ax.plot(real_yields_df["Maturity"], real_yields_df["W/W -2"], marker='s', color='orange', label=f"Real Yield ({label_ww2})")
-ax.plot(real_yields_df["Maturity"], real_yields_df["W/W -1"], marker='^', color='lime', label=f"Real Yield ({label_ww1})")
-
-# Annotate change
-for i, row in real_yields_df.iterrows():
-    ax.text(row["Maturity"], row["W/W -2"] + 0.05,
-            f"{row['W/W Change']:+.2f}", ha='center', fontsize=9, color='white')
-
-# Style
-ax.set_title("Real Yield Curve", color='white', fontsize=18)
-ax.set_xlabel("Maturity (Years)", color='white')
-ax.set_ylabel("Real Yield (%)", color='white')
-ax.tick_params(axis='x', colors='white')
-ax.tick_params(axis='y', colors='white')
-ax.grid(True, linestyle='--', alpha=0.4)
-
-# Legend
-legend = ax.legend(facecolor='black', edgecolor='white')
-for text in legend.get_texts():
-    text.set_color("white")
-
-# Show chart
+# Yield Curve Plot
+plt.style.use("dark_background")
+fig, ax = plt.subplots()
+ax.plot(real_yields_df["Maturity"], real_yields_df[label_ytd], label=f"Real Yield ({label_ytd})", marker='o')
+ax.plot(real_yields_df["Maturity"], real_yields_df[label_last], label=f"Real Yield ({label_last})", marker='s')
+ax.plot(real_yields_df["Maturity"], real_yields_df[label_today], label=f"Real Yield ({label_today})", marker='^')
+ax.set_title("Real Yield Curve")
+ax.set_ylabel("Real Yield (%)")
+ax.legend()
 st.pyplot(fig)
+
+# Data Table Output
+st.subheader("Real Yield Weekly Change")
+st.dataframe(real_yields_df)
